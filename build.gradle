@@ -1,0 +1,54 @@
+plugins {
+    id 'java'
+    id 'antlr'
+}
+
+group 'exe.bbllw8'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    antlr 'org.antlr:antlr4:4.9.3'
+    implementation 'org.antlr:antlr4-runtime:4.9.3'
+
+    annotationProcessor 'info.picocli:picocli-codegen:4.7.0'
+    implementation 'info.picocli:picocli:4.7.0'
+
+    implementation 'io.github.2bllw8:either:3.4.0'
+
+    implementation 'com.fifesoft:rsyntaxtextarea:3.3.1'
+
+    testImplementation 'junit:junit:4.13.1'
+}
+
+configurations {
+    compile {
+        // https://github.com/gradle/gradle/issues/820
+        extendsFrom = extendsFrom.findAll { it != configurations.antlr }
+    }
+}
+
+compileJava {
+    options.compilerArgs += ["-Aproject=${project.group}/${project.name}"]
+}
+
+generateGrammarSource {
+    maxHeapSize = "64m"
+    arguments += ['-package', 'exe.bbllw8.collapse.lang',
+                  '-visitor', '-no-listener']
+
+    doLast {
+        println 'Copying generated grammar lexer/parser files to main directory.'
+        copy {
+            from '${buildDir}/generated-src/antlr/main'
+            into 'generated-src/main/java'
+        }
+    }
+}
+
+clean.doLast {
+    file('generated-src').deleteDir()
+}
